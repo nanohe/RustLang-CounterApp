@@ -1,0 +1,62 @@
+<pre>---                                                                                                                                                                      
+  <b>Rust concepts introduced</b>                                                                                                                                                 
+                                                                                                                                                                           
+  <b>1. Traits — Rust&apos;s version of interfaces</b>                                                                                                                                 
+                                                                                                                                                                           
+  A trait defines behaviour that a type must implement. <font color="#B1B9F9">Display</font> and <font color="#B1B9F9">Debug</font> are both traits from the standard library defined as:                                            
+   
+  <font color="#12488B">trait Display</font> {                                                                                                                                                          
+      <font color="#12488B">fn</font><font color="#A2734C"> fmt</font>(&amp;<font color="#12488B">self</font>, f: &amp;<font color="#12488B">mut</font> Formatter&lt;&apos;_&gt;) -&gt; fmt::<font color="#2AA1B3">Result</font>;                                                                                                                 
+  }                                                                                                                                                                        
+                                                                                                                                                                           
+  You implement a trait with <font color="#B1B9F9">impl TraitName for YourType { ... }</font>. Any type that implements <font color="#B1B9F9">Display</font> can be used with <font color="#B1B9F9">{}</font> in <font color="#B1B9F9">format!</font>, <font color="#B1B9F9">println!</font>, <font color="#B1B9F9">.to_string()</font>, etc.            
+                                                                                                                                                                           
+  ---                                                                                                                                                                      
+  <b>2. </b><font color="#B1B9F9"><b>impl fmt::Display for Category</b></font>                                                                                                                                      
+                                                                                                                                                                           
+  <font color="#12488B">impl</font> fmt::Display <font color="#12488B">for</font> Category {
+      <font color="#12488B">fn</font><font color="#A2734C"> fmt</font>(&amp;<font color="#12488B">self</font>, f: &amp;<font color="#12488B">mut</font> fmt::Formatter&lt;&apos;_&gt;) -&gt; fmt::<font color="#2AA1B3">Result</font> {                                                                                                           
+          <font color="#12488B">let</font> label = <font color="#12488B">match</font> <font color="#12488B">self</font> { ... };                                                                                                                                  
+          <font color="#2AA1B3">write!</font>(f, <font color="#C01C28">&quot;{}&quot;</font>, label)
+      }                                                                                                                                                                    
+  }                                                                                                                                                                      
+
+  Once implemented, <font color="#B1B9F9">self.new_category.to_string()</font> works automatically — the standard library provides <font color="#B1B9F9">.to_string()</font> for free on any type that implements <font color="#B1B9F9">Display</font>. We also   
+  removed the <font color="#B1B9F9">label()</font> method since <font color="#B1B9F9">Display</font> now covers that role.
+                                                                                                                                                                           
+  ---                                                                                                                                                                    
+  <b>3.</b> <font color="#B1B9F9"><b>impl</b></font> <font color="#B1B9F9"><b>fmt::Display</b></font> <font color="#B1B9F9"><b>for</b></font> <font color="#B1B9F9"><b>Counter</b></font>
+
+  <font color="#12488B">impl</font> fmt::Display <font color="#12488B">for</font> Counter {
+      <font color="#12488B">fn</font><font color="#A2734C"> fmt</font>(&amp;<font color="#12488B">self</font>, f: &amp;<font color="#12488B">mut</font> fmt::Formatter&lt;&apos;_&gt;) -&gt; fmt::<font color="#2AA1B3">Result</font> {                                                                                                           
+          <font color="#2AA1B3">write!</font>(f, <font color="#C01C28">&quot;[{}] {}: {}{}&quot;</font>, <font color="#12488B">self</font>.category, <font color="#12488B">self</font>.name, <font color="#12488B">self</font>.count, limit)
+      }                                                                                                                                                                    
+  }                                                                                                                                                                      
+                                                                                                                                                                           
+  Now the UI line shrinks from a verbose <font color="#B1B9F9">format!(...)</font> to just:                                                                                                             
+   
+  ui.label(counter.to_string());                                                                                                                                           
+                                                                                                                                                                           
+  The formatting logic lives on the type, not scattered in the UI.                                                                                                         
+                                                                                                                                                                           
+  ---                                                                                                                                                                      
+  <b>4. </b><font color="#B1B9F9"><b>Debug</b></font><b> vs </b><font color="#B1B9F9"><b>Display</b></font><b> — two different traits for two audiences</b>                                                                                                           
+                                                                                                                                                                           
+  ┌─────────┬────────┬───────────────────────────────────┐
+  │  Trait  │ Format │              Purpose              │                                                                                                                 
+  ├─────────┼────────┼───────────────────────────────────┤                                                                                                               
+  │ <font color="#B1B9F9">Display</font> │ <font color="#B1B9F9">{}</font>     │ User-facing, you design it        │
+  ├─────────┼────────┼───────────────────────────────────┤
+  │ <font color="#B1B9F9">Debug</font>   │ <font color="#B1B9F9">{:?}</font>   │ Developer-facing, usually derived │                                                                                                                 
+  └─────────┴────────┴───────────────────────────────────┘                                                                                                                 
+                                                                                                                                                                           
+  <font color="#5E5C64">#[derive(Debug)]</font>   <font color="#26A269">// free implementation, shows raw field values</font>                                                                                                        
+  <font color="#12488B">struct Counter</font> { ... }                                                                                                                                                   
+   
+  The debug panel uses <font color="#B1B9F9">{:?}</font>:                                                                                                                                               
+  ui.monospace(<font color="#2AA1B3">format!</font>(<font color="#C01C28">&quot;{:?}&quot;</font>, counter));
+  <font color="#26A269">// → Counter { name: &quot;steps&quot;, count: 3, category: Daily }</font>                                                                                                                
+                                                           
+  <font color="#B1B9F9">Display</font> shows what the user sees. <font color="#B1B9F9">Debug</font> shows what <i>you</i> see when inspecting state — toggle the checkbox in the app to see both side by side.                              
+                                                                                                                                                                           
+  --- </pre>

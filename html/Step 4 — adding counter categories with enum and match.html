@@ -1,0 +1,65 @@
+<pre>---                                                                                                                                                                      
+  <b>Rust concepts introduced</b>                                                                                                                                                 
+                                                                                                                                                                           
+  <b>1. </b><font color="#B1B9F9"><b>enum</b></font><b> — a type with fixed variants</b>                                                                                                                                     
+                                                                                                                                                                           
+  <font color="#5E5C64">#[derive(Debug, Clone, Copy, PartialEq, Default)]</font>                                                                                                                      
+  <font color="#12488B">enum Category</font> {                                                                                                                                                          
+      Daily,                                                                                                                                                               
+      Weekly,                                                                                                                                                              
+      <font color="#5E5C64">#[default]</font>                                                                                                                                                           
+      Unlimited,                                                                                                                                                           
+  }
+
+  An <font color="#B1B9F9">enum</font> defines a set of named possibilities. Unlike C enums, Rust enums are full types. The derives do real work:                                                       
+  - <font color="#B1B9F9">Clone</font> — lets you call <font color="#B1B9F9">.clone()</font> on it
+  - <font color="#B1B9F9">Copy</font> — since it&apos;s tiny, Rust copies it automatically instead of moving (no need to <font color="#B1B9F9">.clone()</font>)                                                                           
+  - <font color="#B1B9F9">PartialEq</font> — lets you compare with <font color="#B1B9F9">==</font> (needed by <font color="#B1B9F9">selectable_value</font>)                                                                                                    
+  - <font color="#B1B9F9">Debug</font> — lets you print it with <font color="#B1B9F9">{:?}</font>                                                                                                                                    
+  - <font color="#B1B9F9">Default</font> + <font color="#B1B9F9">#[default]</font> — makes <font color="#B1B9F9">Unlimited</font> the zero value, so <font color="#B1B9F9">CounterApp</font> can still derive <font color="#B1B9F9">Default</font>                                                                          
+                                                                                                                                                                           
+  ---                                                                                                                                                                      
+  <b>2. </b><font color="#B1B9F9"><b>match</b></font><b> — exhaustive pattern matching</b>                                                                                                                                 
+                                                                                                                                                                           
+  <font color="#12488B">fn</font><font color="#A2734C"> label</font>(&amp;<font color="#12488B">self</font>) -&gt; &amp;<font color="#2AA1B3">str</font> {                                                                                                                                              
+      <font color="#12488B">match</font> <font color="#12488B">self</font> {                                                                                                                                                         
+          Category::Daily =&gt; <font color="#C01C28">&quot;Daily&quot;</font>,                                                                                                                                    
+          Category::Weekly =&gt; <font color="#C01C28">&quot;Weekly&quot;</font>,
+          Category::Unlimited =&gt; <font color="#C01C28">&quot;Unlimited&quot;</font>,                                                                                                                              
+      }
+  }                                                                                                                                                                        
+                                                                                                                                                                         
+  <font color="#B1B9F9">match</font> is like <font color="#B1B9F9">switch</font> but Rust enforces you handle <i>every</i> variant. If you add a new variant later and forget to update a <font color="#B1B9F9">match</font>, the compiler refuses to build. This is one 
+  of Rust&apos;s most powerful safety features.
+                                                                                                                                                                           
+  ---                                                                                                                                                                    
+  <b>3.</b> <font color="#B1B9F9"><b>Option&lt;T&gt;</b></font><b> —</b> <b>a</b> <b>value</b> <b>that</b> <b>may</b> <b>or</b> <b>may</b> <b>not</b> <b>exist</b>
+
+  <font color="#12488B">fn</font><font color="#A2734C"> max_count</font>(&amp;<font color="#12488B">self</font>) -&gt; <font color="#2AA1B3">Option</font>&lt;<font color="#2AA1B3">i32</font>&gt; {
+      <font color="#12488B">match</font> <font color="#12488B">self</font> {                                                                                                                                                         
+          Category::Daily =&gt; <font color="#12488B">Some</font>(<font color="#26A269">10</font>),
+          Category::Weekly =&gt; <font color="#12488B">Some</font>(<font color="#26A269">50</font>),                                                                                                                                    
+          Category::Unlimited =&gt; <font color="#12488B">None</font>,                                                                                                                                   
+      }                                                                                                                                                                    
+  }
+                                                                                                                                                                           
+  <font color="#B1B9F9">Option&lt;T&gt;</font> is Rust&apos;s replacement for <font color="#B1B9F9">null</font>. It has two variants:                                                                                                         
+  - <font color="#B1B9F9">Some(value)</font> — there is a value
+  - <font color="#B1B9F9">None</font> — there isn&apos;t                                                                                                                                                     
+                      
+  You then use <font color="#B1B9F9">match</font> (or <font color="#B1B9F9">if let</font>) to safely unwrap it:                                                                                                                      
+                                                                                                                                                                           
+  <font color="#12488B">match</font> <font color="#12488B">self</font>.category.max_count() {
+      <font color="#12488B">Some</font>(max) =&gt; <font color="#12488B">self</font>.count = new_count.min(max),  <font color="#26A269">// cap at max</font>                                                                                                         
+      <font color="#12488B">None</font> =&gt; <font color="#12488B">self</font>.count = new_count,                 <font color="#26A269">// no cap</font>                                                                                                          
+  }                                                                                                                                                                        
+                  
+  Rust forces you to handle both cases — you can never accidentally use a <font color="#B1B9F9">None</font> as if it were a value (unlike null pointer bugs in other languages).                        
+                  
+  ---                                                                                                                                                                      
+  <b>4. Methods on </b><font color="#B1B9F9"><b>Counter</b></font><b> (</b><font color="#B1B9F9"><b>increment</b></font><b> / </b><font color="#B1B9F9"><b>decrement</b></font><b>)</b>
+                                                                                                                                                                           
+  Logic moved off the UI and onto the struct itself. The UI just calls <font color="#B1B9F9">counter.increment()</font> — it doesn&apos;t need to know about categories or limits. This is the beginning of
+  separating <i>data + behaviour</i> from <i>presentation</i>.                                                                                                                           
+                  
+  ---  </pre>

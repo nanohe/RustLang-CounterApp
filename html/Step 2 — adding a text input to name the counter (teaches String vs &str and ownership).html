@@ -1,0 +1,47 @@
+<pre>  ---                                                                                                                                                                      
+  <b>Rust concepts: </b><font color="#B1B9F9"><b>String</b></font><b> vs </b><font color="#B1B9F9"><b>&amp;str</b></font>                                                                                                                                            
+                                                                                                                                                                           
+  <b>1. </b><font color="#B1B9F9"><b>String</b></font><b> in the struct</b>                                                                                                                                                  
+                                                                                                                                                                           
+  <font color="#12488B">struct CounterApp</font> {                                                                                                                                                    
+      name: <font color="#2AA1B3">String</font>,  <font color="#26A269">// owned, heap-allocated, growable</font>                                                                                                                    
+      count: <font color="#2AA1B3">i32</font>,                                                                                                                                                          
+  }                                                                                                                                                                        
+                                                                                                                                                                           
+  In Rust there are two main string types:                                                                                                                                 
+   
+  ┌────────┬─────────────┬──────────┬──────────┐                                                                                                                           
+  │  Type  │   Owned?    │ Mutable? │  Where   │                                                                                                                         
+  ├────────┼─────────────┼──────────┼──────────┤                                                                                                                           
+  │ <font color="#B1B9F9">String</font> │ Yes         │ Yes      │ Heap     │                                                                                                                         
+  ├────────┼─────────────┼──────────┼──────────┤
+  │ <font color="#B1B9F9">&amp;str</font>   │ No (borrow) │ No       │ Anywhere │
+  └────────┴─────────────┴──────────┴──────────┘                                                                                                                           
+   
+  A struct must own its data, so we use <font color="#B1B9F9">String</font> — not <font color="#B1B9F9">&amp;str</font>. If you tried <font color="#B1B9F9">name: &amp;str</font>, Rust would ask for a <i>lifetime</i> annotation (a more advanced topic).                      
+                                                                                                                                                                         
+  <font color="#B1B9F9">#[derive(Default)]</font> gives <font color="#B1B9F9">String</font> its default value of <font color="#B1B9F9">&quot;&quot;</font> (empty string) automatically.                                                                                    
+                                                                                                                                                                         
+  ---                                                                                                                                                                      
+  <b>2. </b><font color="#B1B9F9"><b>text_edit_singleline</b></font><b> needs </b><font color="#B1B9F9"><b>&amp;mut String</b></font>                                                                                                                              
+                                                                                                                                                                           
+  ui.text_edit_singleline(&amp;<font color="#12488B">mut</font> <font color="#12488B">self</font>.name);                                                                                                                               
+                                                                                                                                                                           
+  <font color="#B1B9F9">&amp;mut self.name</font> is a <i>mutable reference</i> — we&apos;re lending the widget temporary write access to <font color="#B1B9F9">self.name</font>. We don&apos;t give it ownership, just a borrow. egui reads and writes   
+  through that reference each frame.                                                                                                                                       
+                                                                                                                                                                           
+  ---                                                                                                                                                                    
+  <b>3. </b><font color="#B1B9F9"><b>.clone()</b></font><b> vs </b><font color="#B1B9F9"><b>.to_string()</b></font>
+                                                                                                                                                                           
+  <font color="#12488B">let</font> display_name = <font color="#12488B">if</font> <font color="#12488B">self</font>.name.is_empty() {
+      <font color="#C01C28">&quot;Unnamed&quot;</font>.to_string()   <font color="#26A269">// &amp;str  → new String</font>                                                                                                                        
+  } <font color="#12488B">else</font> {                                                                                                                                                                 
+      <font color="#12488B">self</font>.name.clone()       <font color="#26A269">// String → new String (copy the value)</font>
+  };                                                                                                                                                                       
+                                                                                                                                                                         
+  - <font color="#B1B9F9">&quot;Unnamed&quot;</font> is a <font color="#B1B9F9">&amp;str</font> (string literal, baked into the binary). <font color="#B1B9F9">.to_string()</font> converts it into an owned <font color="#B1B9F9">String</font>.                                                            
+  - <font color="#B1B9F9">.clone()</font> makes a full copy of <font color="#B1B9F9">self.name</font> so <font color="#B1B9F9">display_name</font> owns its own data independently.
+                                                                                                                                                                           
+  You need the clone here because <font color="#B1B9F9">self.name</font> is still owned by the struct — you can&apos;t <i>move</i> it out while <font color="#B1B9F9">self</font> is still alive.                                                
+                                                                                                                                                                           
+  ---   </pre>

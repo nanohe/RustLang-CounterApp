@@ -1,0 +1,61 @@
+<pre>---                                                                                                                                                                      
+  <b>Rust concepts introduced</b>                                                                                                                                                 
+                                                                                                                                                                           
+  <b>1. External crates &amp; </b><font color="#B1B9F9"><b>Cargo.toml</b></font>                                                                                                                                          
+                                                                                                                                                                           
+  <font color="#2AA1B3">serde</font> = { version = <font color="#C01C28">&quot;1&quot;</font>, features = [<font color="#C01C28">&quot;derive&quot;</font>] }                                                                                                                         
+  <font color="#2AA1B3">serde_json</font> = <font color="#C01C28">&quot;1&quot;</font>                                                                                                                                                         
+                                                                                                                                                                           
+  Rust&apos;s package manager is Cargo. Crates are libraries. <font color="#B1B9F9">serde</font> is Rust&apos;s de-facto serialization framework — it converts structs to/from formats like JSON, TOML, YAML. The 
+  <font color="#B1B9F9">features = [&quot;derive&quot;]</font> part enables the proc-macro that auto-generates serialization code.                                                                                
+                                                                                                                                                                           
+  ---             
+  <b>2.</b> <b>Derive</b> <b>macros</b> <b>for</b> <b>serialization</b>
+
+  <font color="#5E5C64">#[derive(Serialize,</font> <font color="#5E5C64">Deserialize)]</font>
+  <font color="#12488B">struct Counter</font> { ... }
+                                                                                                                                                                           
+  Just like <font color="#B1B9F9">Debug</font> and <font color="#B1B9F9">Default</font>, adding these derives makes <font color="#B1B9F9">Counter</font> automatically serializable. <font color="#B1B9F9">serde</font> generates the conversion code at compile time — no runtime overhead.   
+                                                                                                                                                                           
+  ---                                                                                                                                                                      
+  <b>3. </b><font color="#B1B9F9"><b>Result&lt;T, E&gt;</b></font><b> and the </b><font color="#B1B9F9"><b>?</b></font><b> operator</b>
+                                    
+  <font color="#12488B">fn</font><font color="#A2734C"> save</font>(counters: &amp;[Counter]) -&gt; <font color="#2AA1B3">Result</font>&lt;(), <font color="#2AA1B3">Box</font>&lt;<font color="#12488B">dyn</font> std::error::Error&gt;&gt; {
+      <font color="#12488B">let</font> json = serde_json::to_string_pretty(counters)?;                                                                                                                  
+      std::fs::write(SAVE_FILE, json)?;                                                                                                                                    
+      <font color="#12488B">Ok</font>(())                                                                                                                                                               
+  }                                                                                                                                                                        
+                  
+  <font color="#B1B9F9">Result&lt;T, E&gt;</font> has two variants — <font color="#B1B9F9">Ok(value)</font> for success, <font color="#B1B9F9">Err(error)</font> for failure. It&apos;s Rust&apos;s alternative to exceptions.                                                    
+   
+  The <font color="#B1B9F9">?</font> operator is the key pattern: if the call returns <font color="#B1B9F9">Err</font>, it immediately returns that error from the current function. Without <font color="#B1B9F9">?</font> you&apos;d write:                          
+                  
+  <font color="#12488B">let</font> json = <font color="#12488B">match</font> serde_json::to_string_pretty(counters) {                                                                                                                
+      <font color="#12488B">Ok</font>(v) =&gt; v,                                                                                                                                                          
+      <font color="#12488B">Err</font>(e) =&gt; <font color="#12488B">return</font> <font color="#12488B">Err</font>(e.into()),
+  };                                                                                                                                                                       
+                  
+  <font color="#B1B9F9">?</font> collapses that to one character. Chain as many fallible operations as you like cleanly.                                                                                
+   
+  <font color="#B1B9F9">Box&lt;dyn std::error::Error&gt;</font> means &quot;any error type&quot; — <font color="#B1B9F9">serde_json</font> errors and <font color="#B1B9F9">std::io</font> errors are different types, but both implement the <font color="#B1B9F9">Error</font> trait, so boxing them lets us 
+  return either from the same function.
+                                                                                                                                                                           
+  ---             
+  <b>4. Handling </b><font color="#B1B9F9"><b>Result</b></font><b> at the call site</b>
+                                                                                                                                                                           
+  <font color="#12488B">self</font>.status = <font color="#12488B">match</font> save(&amp;<font color="#12488B">self</font>.counters) {
+      <font color="#12488B">Ok</font>(()) =&gt; <font color="#12488B">Some</font>(<font color="#2AA1B3">format!</font>(<font color="#C01C28">&quot;Saved to {}&quot;</font>, SAVE_FILE)),                                                                                                                   
+      <font color="#12488B">Err</font>(e) =&gt; <font color="#12488B">Some</font>(<font color="#2AA1B3">format!</font>(<font color="#C01C28">&quot;Save error: {}&quot;</font>, e)),                                                                                                                        
+  };
+                                                                                                                                                                           
+  The UI always handles both outcomes explicitly. Errors show in the UI as a status message rather than crashing the app — this is the ergonomic Rust way.                 
+   
+  ---                                                                                                                                                                      
+  <b>5. </b><font color="#B1B9F9"><b>&amp;[Counter]</b></font><b> — slice reference</b>
+                                                                                                                                                                           
+  <font color="#12488B">fn</font><font color="#A2734C"> save</font>(counters: &amp;[Counter]) -&gt; ...
+                                                                                                                                                                           
+  Instead of taking <font color="#B1B9F9">&amp;Vec&lt;Counter&gt;</font>, we take <font color="#B1B9F9">&amp;[Counter]</font> (a <i>slice</i>). A slice is a view into any contiguous sequence. This is more general — the function works on any slice,   
+  not just <font color="#B1B9F9">Vec</font>. It&apos;s idiomatic Rust to prefer <font color="#B1B9F9">&amp;[T]</font> over <font color="#B1B9F9">&amp;Vec&lt;T&gt;</font> in function parameters.                                                                                    
+                                                                                                                                                                           
+  ---  </pre>

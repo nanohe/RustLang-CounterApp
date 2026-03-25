@@ -1,0 +1,63 @@
+<pre>---                                                                                                                                                                      
+  <b>Rust concepts introduced</b>                                                                                                                                                 
+                                                                                                                                                                           
+  <b>1. Declaring modules with </b><font color="#B1B9F9"><b>mod</b></font>                                                                                                                                            
+                                                                                                                                                                           
+  <font color="#26A269">// src/main.rs</font>                                                                                                                                                           
+  <font color="#12488B">mod</font> app;
+  <font color="#12488B">mod</font> counter;                                                                                                                                                             
+                                                                                                                                                                           
+  <font color="#B1B9F9">mod counter;</font> tells Rust: &quot;find a file at <font color="#B1B9F9">src/counter.rs</font> and treat it as a module named <font color="#B1B9F9">counter</font>&quot;. No separate build config needed — Cargo discovers it through <font color="#B1B9F9">main.rs</font>.   
+  The module tree always has <font color="#B1B9F9">main.rs</font> (or <font color="#B1B9F9">lib.rs</font>) as its root.                                                                                                              
+                                                                                                                                                                           
+  ---                                                                                                                                                                    
+  <b>2. </b><font color="#B1B9F9"><b>pub</b></font><b> — controlling visibility</b>
+                                                                                                                                                                           
+  By default everything in Rust is <i>private</i> — only visible within the same module. You opt into sharing with <font color="#B1B9F9">pub</font>:
+                                                                                                                                                                           
+  <font color="#12488B">pub</font> <font color="#12488B">struct Counter</font> { ... }   <font color="#26A269">// visible outside counter.rs</font>                                                                                                             
+  <font color="#12488B">pub</font> <font color="#12488B">fn</font><font color="#A2734C"> save</font>(...) { ... }     <font color="#26A269">// visible outside counter.rs</font>                                                                                                               
+                                                                                                                                                                           
+  <font color="#12488B">pub</font> <font color="#12488B">struct CounterApp</font> { ... } <font color="#26A269">// visible outside app.rs</font>                                                                                                                  
+                                                                                                                                                                           
+  Fields also need <font color="#B1B9F9">pub</font> if you want other modules to read/write them directly:                                                                                              
+  <font color="#12488B">pub</font> <font color="#12488B">struct Counter</font> {
+      <font color="#12488B">pub</font> name: <font color="#2AA1B3">String</font>,                                                                                                                                                    
+      <font color="#12488B">pub</font> count: <font color="#2AA1B3">i32</font>,                                                                                                                                                    
+      <font color="#12488B">pub</font> category: Category,
+  }                                                                                                                                                                        
+   
+  This is unlike most languages — Rust makes you think explicitly about your public API surface.                                                                           
+                                                                                                                                                                           
+  ---
+  <b>3. </b><font color="#B1B9F9"><b>use</b></font><b> paths across modules</b>                                                                                                                                              
+                                                                                                                                                                           
+  <font color="#26A269">// src/app.rs</font>
+  <font color="#12488B">use</font> crate::counter::{load, save, Category, Counter, SAVE_FILE};                                                                                                          
+                                                                                                                                                                           
+  <font color="#B1B9F9">crate</font> refers to the root of your project (<font color="#B1B9F9">main.rs</font>). So <font color="#B1B9F9">crate::counter::Counter</font> means: starting from the crate root, go into the <font color="#B1B9F9">counter</font> module, find <font color="#B1B9F9">Counter</font>. The <font color="#B1B9F9">use</font>    
+  statement brings them into local scope so you don&apos;t have to write the full path every time.                                                                              
+                                                                                                                                                                           
+  ---             
+  <b>4. The resulting module tree</b>
+                                                                                                                                                                           
+  crate (main.rs)
+  ├── mod app       → src/app.rs                                                                                                                                           
+  │   └── CounterApp                                                                                                                                                       
+  └── mod counter   → src/counter.rs
+      ├── Category                                                                                                                                                         
+      ├── Counter                                                                                                                                                          
+      ├── save()
+      └── load()                                                                                                                                                           
+                  
+  <font color="#B1B9F9">main.rs</font> is now just the entry point — 10 lines. Each file has a clear, single responsibility.                                                                            
+   
+  ---                                                                                                                                                                      
+  You&apos;ve now covered all 7 steps. The app has gone from a 36-line single file to a properly structured Rust project with:
+                                                                                                                                                                           
+  - Owned types and borrowing (<font color="#B1B9F9">String</font>, <font color="#B1B9F9">&amp;str</font>, <font color="#B1B9F9">&amp;[T]</font>)
+  - Collections (<font color="#B1B9F9">Vec&lt;T&gt;</font>)                                                                                                                                                   
+  - Enums and pattern matching
+  - Traits (<font color="#B1B9F9">Display</font>, <font color="#B1B9F9">Debug</font>)                                                                                                                                                
+  - Error handling (<font color="#B1B9F9">Result</font>, <font color="#B1B9F9">?</font>)                                                                                                                                             
+  - Modules and visibility (<font color="#B1B9F9">mod</font>, <font color="#B1B9F9">pub</font>, <font color="#B1B9F9">use</font>)  </pre>

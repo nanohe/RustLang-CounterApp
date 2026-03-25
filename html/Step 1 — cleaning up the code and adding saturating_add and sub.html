@@ -1,0 +1,19 @@
+<pre>  <b>What we did &amp; the Rust concepts behind it</b>                                                                                                                                
+                                                                                                                                                                           
+  <b>1. Removed the dead comment</b>                                                                                                                                              
+  Just hygiene — <font color="#B1B9F9">cargo new</font> generates that <font color="#B1B9F9">println!</font> stub, it serves no purpose here.                                                                                        
+                                                                                                                                                                           
+  <b>2. </b><font color="#B1B9F9"><b>saturating_add</b></font><b> / </b><font color="#B1B9F9"><b>saturating_sub</b></font>                                                                                                                                       
+                                                                                                                                                                           
+  <font color="#26A269">// Before — silent overflow in release, panic in debug</font>                                                                                                                   
+  <font color="#12488B">self</font>.count += <font color="#26A269">1</font>;                                                                                                                                                         
+                                                                                                                                                                           
+  <font color="#26A269">// After — clamps at i32::MAX / i32::MIN instead of overflowing</font>                                                                                                          
+  <font color="#12488B">self</font>.count = <font color="#12488B">self</font>.count.saturating_add(<font color="#26A269">1</font>);                                                                                                                             
+                                                                                                                                                                           
+  In Rust, integer overflow is <b>undefined behavior</b> in C/C++ but Rust makes it explicit:                                                                                     
+  - <b>Debug builds</b>: panic on overflow (catches bugs early)
+  - <b>Release builds</b>: wraps silently (fast but surprising)                                                                                                                   
+                                                                                                                                                                         
+  <font color="#B1B9F9">saturating_add</font> is a method on all integer primitives. It clamps at the boundary (<font color="#B1B9F9">i32::MAX</font> = 2,147,483,647) instead of overflowing. You call it with                      
+  <font color="#B1B9F9">self.count.saturating_add(1)</font> — this is Rust&apos;s method call syntax, equivalent to <font color="#B1B9F9">i32::saturating_add(self.count, 1)</font>.   </pre>

@@ -1,0 +1,61 @@
+<pre>---                                                                                                                                                                      
+  <b>Rust concepts introduced</b>                                                                                                                                                 
+                                                                                                                                                                           
+  <b>1. A plain struct with a constructor</b>                                                                                                                                     
+                                                                                                                                                                           
+  <font color="#12488B">struct Counter</font> {                                                                                                                                                       
+      name: <font color="#2AA1B3">String</font>,                                                                                                                                                        
+      count: <font color="#2AA1B3">i32</font>,                                                                                                                                                          
+  }                                                                                                                                                                        
+                                                                                                                                                                           
+  <font color="#12488B">impl</font> Counter {                                                                                                                                                           
+      <font color="#12488B">fn</font><font color="#A2734C"> new</font>(name: <font color="#2AA1B3">String</font>) -&gt; <font color="#12488B">Self</font> {
+          <font color="#12488B">Self</font> { name, count: <font color="#26A269">0</font> }
+      }                                                                                                                                                                    
+  }
+                                                                                                                                                                           
+  <font color="#B1B9F9">Counter</font> doesn&apos;t derive <font color="#B1B9F9">Default</font> because it requires a name — so we write a manual <font color="#B1B9F9">new()</font> instead. <font color="#B1B9F9">Self</font> inside <font color="#B1B9F9">impl</font> is shorthand for the type (<font color="#B1B9F9">Counter</font>). <font color="#B1B9F9">Self { name, count:</font>
+  <font color="#B1B9F9"> 0 }</font> uses <i>field shorthand</i> — when a variable has the same name as the field, you don&apos;t need to write <font color="#B1B9F9">name: name</font>.
+                                                                                                                                                                           
+  ---                                                                                                                                                                      
+  <b>2. </b><font color="#B1B9F9"><b>Vec&lt;T&gt;</b></font><b> — Rust&apos;s growable list</b>
+                                                                                                                                                                           
+  counters: <font color="#2AA1B3">Vec</font>&lt;Counter&gt;,   <font color="#26A269">// a list of Counter values, owned by CounterApp</font>                                                                                             
+                                                                                                                                                                           
+  Key <font color="#B1B9F9">Vec</font> methods used:                                                                                                                                                    
+  - <font color="#B1B9F9">.push(value)</font> — append to the end                                                                                                                                       
+  - <font color="#B1B9F9">.remove(i)</font> — remove by index, shifts elements left                                                                                                                     
+  - <font color="#B1B9F9">.iter_mut()</font> — iterate with mutable access to each element                                                                                                            
+                                                                                                                                                                           
+  <font color="#B1B9F9">Vec&lt;Counter&gt;</font> defaults to an empty vec via <font color="#B1B9F9">#[derive(Default)]</font>.                                                                                                            
+                                                                                                                                                                           
+  ---                                                                                                                                                                      
+  <b>3. Iterating with </b><font color="#B1B9F9"><b>iter_mut()</b></font><b> and </b><font color="#B1B9F9"><b>enumerate()</b></font>                                                                                                                             
+                                                                                                                                                                           
+  <font color="#12488B">for</font> (i, counter) <font color="#12488B">in</font> <font color="#12488B">self</font>.counters.iter_mut().enumerate() {
+                                                                                                                                                                           
+  - <font color="#B1B9F9">iter_mut()</font> gives you <font color="#B1B9F9">&amp;mut Counter</font> for each element — you can modify them in place                                                                                      
+  - <font color="#B1B9F9">.enumerate()</font> wraps each item as <font color="#B1B9F9">(index, item)</font> so you know the position
+  - <font color="#B1B9F9">i</font> is used later to know <i>which</i> counter to remove                                                                                                                        
+                                                                                                                                                                           
+  ---                                                                                                                                                                      
+  <b>4. The deferred-remove pattern</b>                                                                                                                                           
+                  
+  <font color="#12488B">let</font> <font color="#12488B">mut</font> to_remove: <font color="#2AA1B3">Option</font>&lt;<font color="#2AA1B3">usize</font>&gt; = <font color="#12488B">None</font>;
+                                                                                                                                                                           
+  <font color="#12488B">for</font> (i, counter) <font color="#12488B">in</font> <font color="#12488B">self</font>.counters.iter_mut().enumerate() {
+      <font color="#12488B">if</font> ui.button(<font color="#C01C28">&quot;Remove&quot;</font>).clicked() {                                                                                                                                   
+          to_remove = <font color="#12488B">Some</font>(i);
+      }
+  }
+
+  <font color="#12488B">if</font> <font color="#12488B">let</font> <font color="#12488B">Some</font>(i) = to_remove {
+      <font color="#12488B">self</font>.counters.remove(i);
+  }
+
+  You can&apos;t call <font color="#B1B9F9">self.counters.remove(i)</font> <i>inside</i> the loop because the loop already holds a mutable borrow of <font color="#B1B9F9">self.counters</font> — Rust won&apos;t let you mutate a collection while   
+  iterating it. The fix: record the index to remove, then act <i>after</i> the loop ends. <font color="#B1B9F9">Option&lt;usize&gt;</font> is perfect for &quot;maybe an index&quot; — <font color="#B1B9F9">None</font> means nothing to remove, <font color="#B1B9F9">Some(i)</font>
+  means remove index <font color="#B1B9F9">i</font>.                                                                                                                                                    
+                  
+  ---
+</pre>
